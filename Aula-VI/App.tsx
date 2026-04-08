@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { TextInput } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 
@@ -9,12 +10,15 @@ import TableCEP from './components/TableCEP';
 
 export default function App() {
   return (
-    <SQLiteProvider databaseName="FatecV.db" onInit={createTables}>
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" />
-        <MainContent />
-      </SafeAreaView>
-    </SQLiteProvider>
+    // 2. ENVOLVA TUDO COM GESTUREHANDLERROOTVIEW
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SQLiteProvider databaseName="FatecV.db" onInit={createTables}>
+        <SafeAreaView style={styles.safeArea}>
+          <StatusBar barStyle="dark-content" />
+          <MainContent />
+        </SafeAreaView>
+      </SQLiteProvider>
+    </GestureHandlerRootView>
   );
 }
 
