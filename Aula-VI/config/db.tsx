@@ -10,20 +10,9 @@ async function createTables(db: SQLite.SQLiteDatabase) {
     try {
         await db.execAsync(`
             PRAGMA journal_mode = WAL;
-            CREATE TABLE IF NOT EXISTS USER(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                NOME VARCHAR(100) NOT NULL,
-                EMAIL VARCHAR(100) UNIQUE NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS LOGIN(
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                USER_EMAIL VARCHAR(100) NOT NULL,
-                PASSWORD VARCHAR(100) NOT NULL,
-                FOREIGN KEY (USER_EMAIL) REFERENCES USER(EMAIL)
-            );
             CREATE TABLE IF NOT EXISTS CEP(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                USER_ID INTEGER NOT NULL,
+                USER VARCHAR(100) NOT NULL,
                 CEP INTEGER(8) NOT NULL,
                 LOGRADOURO VARCHAR(100) NOT NULL,
                 BAIRRO VARCHAR(100) NOT NULL,
@@ -31,8 +20,6 @@ async function createTables(db: SQLite.SQLiteDatabase) {
                 ESTADO VARCHAR(2) NOT NULL,
                 COMPLEMENTO VARCHAR(100),
                 NUMERO INTEGER,
-                DDD INTEGER(2) NOT NULL,
-                FOREIGN KEY (USER_ID) REFERENCES USER(ID)
                 );
             `)
         console.log("Tabelas criadas com sucesso");
@@ -41,4 +28,57 @@ async function createTables(db: SQLite.SQLiteDatabase) {
     }
 }
 
-export { Database, createTables};
+async function createCEP(db: SQLite.SQLiteDatabase, user: string, cep: number, logradouro: string,
+    bairro: string, cidade: string, estado: string, complemento: string, numero: number) {
+    try {
+        await db.runAsync(`INSERT INTO CEP (USER, CEP, LOGRADOURO,
+            BAIRRO, CIDADE, ESTADO, COMPLEMENTO, NUMERO) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+            [user, cep, logradouro, bairro, cidade, estado, complemento, numero, ]);
+        console.log("CEP cadastrado com sucesso");
+    } catch (error) {
+        console.log("Erro ao cadastrar CEP: ", error);
+    }
+}
+
+async function getCEPs(db: SQLite.SQLiteDatabase, cep: number) {
+    try {
+        const result = await db.getAllAsync("SELECT * FROM CEP WHERE CEP = ?;", [cep]);
+        console.log("CEPs encontrados: ", result);
+        return result;
+    } catch (error) {
+        console.log("Erro ao buscar CEP: ", error);
+    }
+}
+
+async function getAllCEPsByUserId(db: SQLite.SQLiteDatabase, userId: number) {
+    try {
+        const result = await db.getAllAsync("SELECT * FROM CEP WHERE USER = ?;", [userId]);
+        console.log("CEPs encontrados: ", result);
+        return result;
+    } catch (error) {
+        console.log("Erro ao buscar CEPs: ", error);
+    }
+}
+
+async function deleteCEP(db: SQLite.SQLiteDatabase, id: number) {
+    try {
+        await db.runAsync("DELETE FROM CEP WHERE ID = ?;", [id]);
+        console.log("CEP excluído com sucesso");
+    } catch (error) {
+        console.log("Erro ao excluir CEP: ", error);
+    }
+}
+
+async function updateCEP(db: SQLite.SQLiteDatabase, id: number, user: string, cep: number, logradouro: string,
+    bairro: string, cidade: string, estado: string, complemento: string, numero: number) {
+    try {
+        await db.runAsync(`UPDATE CEP SET USER = ?, CEP = ?, LOGRADOURO = ?,
+            BAIRRO = ?, CIDADE = ?, ESTADO = ?, COMPLEMENTO = ?, NUMERO = ? WHERE ID = ?;`,
+            [user, cep, logradouro, bairro, cidade, estado, complemento, numero, id]);
+        console.log("CEP atualizado com sucesso");
+    } catch (error) {
+        console.log("Erro ao atualizar CEP: ", error);
+    }
+}
+
+export { Database, createTables, createCEP, getCEPs, getAllCEPsByUserId, deleteCEP, updateCEP };
