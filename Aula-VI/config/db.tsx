@@ -19,7 +19,7 @@ async function createTables(db: SQLite.SQLiteDatabase) {
                 CIDADE VARCHAR(100) NOT NULL,
                 ESTADO VARCHAR(2) NOT NULL,
                 COMPLEMENTO VARCHAR(100),
-                NUMERO INTEGER,
+                NUMERO INTEGER
                 );
             `)
         console.log("Tabelas criadas com sucesso");
@@ -50,13 +50,23 @@ async function getCEPs(db: SQLite.SQLiteDatabase, cep: number) {
     }
 }
 
-async function getAllCEPsByUserId(db: SQLite.SQLiteDatabase, userId: number) {
+async function getAllCEPsByUser(db: SQLite.SQLiteDatabase, user: string) {
     try {
-        const result = await db.getAllAsync("SELECT * FROM CEP WHERE USER = ?;", [userId]);
+        const result = await db.getAllAsync("SELECT * FROM CEP WHERE USER = ?;", [user]);
         console.log("CEPs encontrados: ", result);
         return result;
     } catch (error) {
         console.log("Erro ao buscar CEPs: ", error);
+    }
+}
+
+async function getAllCEPs(db: SQLite.SQLiteDatabase) {
+    try {
+        const result = await db.getAllAsync("SELECT * FROM CEP;");
+        console.log("Todos os CEPs: ", result);
+        return result;
+    } catch (error) {
+        console.log("Erro ao buscar todos os CEPs: ", error);
     }
 }
 
@@ -81,4 +91,4 @@ async function updateCEP(db: SQLite.SQLiteDatabase, id: number, user: string, ce
     }
 }
 
-export { Database, createTables, createCEP, getCEPs, getAllCEPsByUserId, deleteCEP, updateCEP };
+export { Database, createTables, createCEP, getCEPs, getAllCEPsByUser, getAllCEPs, deleteCEP, updateCEP };
