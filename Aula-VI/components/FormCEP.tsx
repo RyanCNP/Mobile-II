@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Picker } from '@react-native-picker/picker';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Platform, Dimensions } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { createCEP, updateCEP } from '../config/db';
 
@@ -11,7 +11,7 @@ interface FormCEPProps {
 }
 
 const listaUF = [
-  { label: '--', value: '' },
+  { label: '--Selecione o Estado--', value: '' },
   { label: 'AC', value: 'AC' }, { label: 'AL', value: 'AL' }, { label: 'AP', value: 'AP' },
   { label: 'AM', value: 'AM' }, { label: 'BA', value: 'BA' }, { label: 'CE', value: 'CE' },
   { label: 'DF', value: 'DF' }, { label: 'ES', value: 'ES' }, { label: 'GO', value: 'GO' },
@@ -91,7 +91,7 @@ export default function FormCEP({ onSuccess, editItem, setEditItem }: FormCEPPro
         await createCEP(db, user, cepNum, logradouro, bairro, cidade, estado, complemento, numValue);
         Alert.alert("Sucesso", "CEP salvo com sucesso!");
       }
-      
+
       clearFields();
       onSuccess();
     } catch (error) {
@@ -116,17 +116,17 @@ export default function FormCEP({ onSuccess, editItem, setEditItem }: FormCEPPro
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>{editItem ? "📝 Editando Endereço" : "📍 Novo Endereço"}</Text>
 
-      <TextInput 
-        style={styles.input} 
-        placeholder="Usuário" 
-        value={user} 
-        onChangeText={setUser} 
+      <TextInput
+        style={styles.input}
+        placeholder="Usuário"
+        value={user}
+        onChangeText={setUser}
       />
 
       <View style={styles.inputWrapper}>
-        <TextInput 
-          style={styles.input} 
-          placeholder="CEP (somente números)" 
+        <TextInput
+          style={styles.input}
+          placeholder="CEP (somente números)"
           keyboardType="numeric"
           maxLength={8}
           value={cep}
@@ -135,78 +135,82 @@ export default function FormCEP({ onSuccess, editItem, setEditItem }: FormCEPPro
         {loading && <ActivityIndicator style={styles.loader} color="#007AFF" />}
       </View>
 
-      <TextInput 
-        style={styles.input} 
-        placeholder="Logradouro" 
-        value={logradouro} 
-        onChangeText={setLogradouro} 
+      <TextInput
+        style={styles.input}
+        placeholder="Logradouro"
+        value={logradouro}
+        onChangeText={setLogradouro}
       />
-      
-      <View style={styles.row}>
-        <TextInput 
-          style={[styles.input, { flex: 2 }]} 
-          placeholder="Bairro" 
-          value={bairro} 
-          onChangeText={setBairro} 
-        />
-        <TextInput 
-          style={[styles.input, { flex: 1, marginLeft: 10 }]} 
-          placeholder="Nº" 
-          keyboardType="numeric" 
-          value={numero} 
-          onChangeText={setNumero} 
-        />
-      </View>
 
       <View style={styles.row}>
-        <TextInput 
-          style={[styles.input, { flex: 2 }]} 
-          placeholder="Cidade" 
-          value={cidade} 
-          onChangeText={setCidade} 
-        />
-        <View style={styles.row}>
-        <TextInput 
-          style={[styles.input, { flex: 2 }]} 
-          placeholder="Cidade" 
-          value={cidade} 
-          onChangeText={setCidade} 
-        />
-        
-        {/* COMBOBOX DE UF */}
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={estado}
-            onValueChange={(itemValue) => setEstado(itemValue)}
-            style={styles.picker}
-            dropdownIconColor="#007AFF"
-          >
-            {listaUF.map((uf) => (
-              <Picker.Item key={uf.value} label={uf.label} value={uf.value} />
-            ))}
-          </Picker>
+        <View style={{ flex: 2 }}>
+          <TextInput
+            style={styles.input}
+            placeholder="Bairro"
+            value={bairro}
+            onChangeText={setBairro}
+          />
+        </View>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nº"
+            keyboardType="numeric"
+            value={numero}
+            onChangeText={setNumero}
+          />
         </View>
       </View>
-      </View>
-
-      <TextInput 
-        style={styles.input} 
-        placeholder="Complemento (opcional)" 
-        value={complemento} 
-        onChangeText={setComplemento} 
-      />
 
       <View style={styles.row}>
-        <TouchableOpacity 
-          style={[styles.button, { flex: 1, backgroundColor: editItem ? '#FF9500' : '#007AFF' }]} 
+        <View style={{ flex: 2.5 }}>
+          <TextInput
+            style={styles.input}
+            placeholder="Cidade"
+            value={cidade}
+            onChangeText={setCidade}
+          />
+        </View>
+
+        <View style={{ flex: 1.5, marginLeft: 10 }}>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={estado}
+              onValueChange={(itemValue) => setEstado(itemValue)}
+              style={styles.picker}
+              dropdownIconColor="#007AFF"
+            >
+              {listaUF.map((uf) => (
+                <Picker.Item
+                  key={uf.value}
+                  label={uf.label === '--Selecione o Estado--' ? 'UF' : uf.label}
+                  value={uf.value}
+                />
+              ))}
+            </Picker>
+          </View>
+        </View>
+      </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Complemento (opcional)"
+        value={complemento}
+        onChangeText={setComplemento}
+      />
+
+      {/* Botões de Ação */}
+      <View style={styles.row}>
+        <TouchableOpacity
+          style={[styles.button, { flex: 1, backgroundColor: editItem ? '#FF9500' : '#007AFF' }]}
           onPress={handleSave}
         >
           <Text style={styles.buttonText}>{editItem ? "ATUALIZAR" : "SALVAR"}</Text>
         </TouchableOpacity>
-        
+
         {editItem && (
-          <TouchableOpacity 
-            style={[styles.button, { flex: 1, marginLeft: 10, backgroundColor: '#8E8E93' }]} 
+          <TouchableOpacity
+            style={[styles.button, { flex: 1, marginLeft: 10, backgroundColor: '#8E8E93' }]}
             onPress={clearFields}
           >
             <Text style={styles.buttonText}>CANCELAR</Text>
@@ -218,53 +222,89 @@ export default function FormCEP({ onSuccess, editItem, setEditItem }: FormCEPPro
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    padding: 15, 
-    backgroundColor: '#f9f9f9', 
-    borderRadius: 10, 
-    marginBottom: 15, 
-    maxHeight: 450 
-  },
-  title: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    marginBottom: 10,
-    color: '#333' 
-  },
-  input: { 
-    backgroundColor: '#fff', 
-    padding: 12, 
-    borderRadius: 8, 
-    borderWidth: 1, 
-    borderColor: '#ddd', 
-    marginBottom: 10,
-    color: '#000'
-  },
-  inputWrapper: { position: 'relative' },
-  loader: { position: 'absolute', right: 12, top: 15 },
-  row: { flexDirection: 'row' },
-  button: { 
-    padding: 15, 
-    borderRadius: 8, 
-    alignItems: 'center', 
-    marginTop: 5,
-    elevation: 2 
-  },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
-  pickerContainer: {
-    flex: 1.5,
-    marginLeft: 10,
+  container: {
+    padding: 15,
     backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 15,
+    maxHeight: Dimensions.get('window').height * 0.7,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+    textAlign: 'center'
+  },
+  input: {
+    backgroundColor: '#f8f9fa',
+    padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    marginBottom: 10,
+    borderColor: '#e9ecef',
+    marginBottom: 12,
+    color: '#000',
+    fontSize: 16,
+    height: 50,
+  },
+  label: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+    marginLeft: 4,
+    fontWeight: '600'
+  },
+  inputWrapper: {
+    position: 'relative',
+    width: '100%'
+  },
+  loader: {
+    position: 'absolute',
+    right: 12,
+    top: 15
+  },
+  row: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between'
+  },
+  button: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+    elevation: 2,
+    justifyContent: 'center',
+    height: 50
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16
+  },
+  pickerContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    marginBottom: 12,
     justifyContent: 'center',
     height: 50,
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   picker: {
     width: '100%',
-    color: '#000',
+    ...Platform.select({
+      android: {
+        marginLeft: -10,
+        color: '#333',
+      },
+    }),
   },
 });
