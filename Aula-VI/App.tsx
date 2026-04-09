@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-  TextInput, // Importado do react-native
+  TextInput,
   KeyboardAvoidingView
 } from 'react-native';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
