@@ -1,0 +1,10 @@
+### GET
+
+GET http://localhoast:3000/
+
+### PUT
+PUT http://localhoast:3000/1
+Content-Type: aplication/json
+{
+    "name":"valor
+}
