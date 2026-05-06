@@ -68,50 +68,89 @@ export default function FormCEP({ onSuccess, editItem, setEditItem }: FormCEPPro
           setEstado(data.uf);
         }
       } catch (error) {
-        Alert.alert("Ocorreu um erro de conexão, tente novamente.");
+        Alert.alert("Erro", "Ocorreu um erro de conexão, tente novamente.");
       } finally {
         setLoading(false);
       }
     }
   };
 
-  const handleSave = async () => {
-    if (!cep || !logradouro) {
-      return Alert.alert("Campos Obrigatórios", "Por favor, preencha ao menos o CEP e o Logradouro.");
-    }
-
-    const cepNum = parseInt(cep);
-    const numValue = parseInt(numero) || 0;
-
+  const salvarLocal = async (dados: any) => {
     try {
       if (editItem) {
-        await updateCEP(db, editItem.ID, user, cepNum, logradouro, bairro, cidade, estado, complemento, numValue);
-        Alert.alert("Sucesso", "CEP atualizado com sucesso!");
+        await updateCEP(
+          db, editItem.ID, dados.user, dados.cep, dados.logradouro,
+          dados.bairro, dados.cidade, dados.estado, dados.complemento, dados.numero
+        );
+        Alert.alert("Sucesso", "Endereço local atualizado!");
       } else {
-        await createCEP(db, user, cepNum, logradouro, bairro, cidade, estado, complemento, numValue);
-        Alert.alert("Sucesso", "CEP salvo com sucesso!");
+        await createCEP(
+          db, dados.user, dados.cep, dados.logradouro,
+          dados.bairro, dados.cidade, dados.estado, dados.complemento, dados.numero
+        );
+        Alert.alert("Sucesso", "Endereço salvo com sucesso!");
       }
-
       clearFields();
       onSuccess();
     } catch (error) {
-      console.error(error);
-      Alert.alert("Erro", "Não foi possível salvar os dados no banco local.");
+      Alert.alert("Erro", "Ocorreu um erro ao salvar o endereço.");
     }
   };
 
+  const salvarNuvem = async (dados: any) => {
+    setLoading(true);
+    try {
+      const metodo = editItem ? 'PUT' : 'POST';
+      const url = editItem ? `https://sua-api.com/ceps/${editItem.ID}` : 'https://sua-api.com/ceps';
+
+      const response = await fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados),
+      });
+
+      if (response.ok) {
+        Alert.alert("Nuvem", editItem ? "Registro atualizado!" : "Sincronizado com o Servidor!");
+        clearFields();
+        onSuccess();
+      } else {
+        throw new Error();
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível conectar ao servidor remoto.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!cep || !logradouro) {
+      return Alert.alert("Campos Obrigatórios", "Por favor, preencha CEP e Logradouro.");
+    }
+
+    const dadosCEP = {
+      user, cep: parseInt(cep), logradouro, bairro, cidade,
+      estado, complemento, numero: parseInt(numero) || null
+    };
+
+    Alert.alert(
+      editItem ? "Confirmar Edição" : "Salvar Endereço",
+      "Onde você deseja persistir estes dados?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Local (SQLite)", onPress: () => salvarLocal(dadosCEP) },
+        { text: "Nuvem (MongoDB)", onPress: () => salvarNuvem(dadosCEP) }
+      ]
+    );
+  };
+
   const clearFields = () => {
-    setUser('');
-    setCep('');
-    setLogradouro('');
-    setBairro('');
-    setCidade('');
-    setEstado('');
-    setComplemento('');
-    setNumero('');
+    setUser(''); setCep(''); setLogradouro(''); setBairro('');
+    setCidade(''); setEstado(''); setComplemento(''); setNumero('');
     if (setEditItem) setEditItem(null);
   };
 
+  // O RETURN deve estar aqui dentro, ANTES do fechamento da função FormCEP
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>{editItem ? "📝 Editando Endereço" : "📍 Novo Endereço"}</Text>
@@ -199,7 +238,6 @@ export default function FormCEP({ onSuccess, editItem, setEditItem }: FormCEPPro
         onChangeText={setComplemento}
       />
 
-      {/* Botões de Ação */}
       <View style={styles.row}>
         <TouchableOpacity
           style={[styles.button, { flex: 1, backgroundColor: editItem ? '#FF9500' : '#007AFF' }]}
